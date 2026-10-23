@@ -45,9 +45,25 @@ current GitHub Actions token and permissions are correct.
 
 ## Current status
 
-The scanner has reported an authorization or organization-access error.
-The exact root cause remains unconfirmed until the token, permissions,
-and organization access have been verified.
-EOFmkdir -p docs
+## Resolution and current status
+
+The Payment API CI workflow now passes SonarCloud analysis after the
+workflow was updated to:
+
+- Pass the GitHub Actions `GITHUB_TOKEN` alongside `SONAR_TOKEN`.
+- Explicitly provide the SonarCloud organization key and project key
+  as scanner arguments.
+- Wait for the Quality Gate result using
+  `-Dsonar.qualitygate.wait=true`.
+
+The latest Payment API CI run succeeded. Because Quality Gate waiting
+is enabled, a successful scanner job is strong evidence that the gate
+did not fail. Confirm the analysis result in SonarCloud before merging.
+
+The exact contribution of each configuration change has not been
+isolated, so do not attribute the original failure to a single cause.
+
+Keep `SONAR_TOKEN` in GitHub Actions secrets. Never print it in logs
+or commit it to the repository.
 
 cat > docs/sonarcloud-troubleshooting.md <<'EOF'
