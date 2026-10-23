@@ -6,12 +6,15 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/gauravghodevs/DB19.git
+    repoURL: https://github.com/gauravghodevs/secureops-devsecops-platform.git
     targetRevision: main
-    path: kubernetes/base
+    path: kubernetes/overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: default
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=false

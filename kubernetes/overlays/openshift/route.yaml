@@ -1,0 +1,14 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: payment-api
+  labels:
+    app: payment-api
+spec:
+  to:
+    kind: Service
+    name: payment-api
+  port:
+    targetPort: http
+  tls:
+    termination: edge

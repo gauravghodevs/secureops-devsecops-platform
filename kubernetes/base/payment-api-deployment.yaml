@@ -22,7 +22,6 @@ spec:
         - name: payment-api
           securityContext:
             runAsNonRoot: true
-            runAsUser: 10001
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
