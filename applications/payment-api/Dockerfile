@@ -27,13 +27,12 @@ COPY --from=builder /install /usr/local
 
 RUN python -m pip uninstall -y pip setuptools wheel
 
-
 COPY applications/payment-api/app ./app
 
-RUN useradd --system --uid 10001 --create-home appuser \
-    && chown -R appuser:appuser /app
+RUN chgrp -R 0 /app \
+    && chmod -R g=u /app
 
-USER 10001:10001
+USER 10001:0
 
 EXPOSE 8000
 
