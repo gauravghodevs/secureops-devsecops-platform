@@ -39,8 +39,8 @@ The following capabilities are implemented and tested today:
 | SonarQube SAST | Planned | Security stage |
 | CycloneDX SBOM generation | Implemented | `.github/workflows/dependency-supply-chain.yml` |
 | Argo CD GitOps | Implemented and verified | `argocd/` |
-| Terraform AWS infrastructure | Planned | Infrastructure stage |
-| Ansible configuration management | Planned | Automation stage |
+| Terraform AWS infrastructure | Implemented and verified | `terraform/` |
+| Ansible configuration management | Implemented and verified | `ansible/` |
 | Prometheus / Grafana / Alertmanager | Deployed and verified | `observability/` |
 | Centralized ELK logging | Planned | Logging stage |
 
