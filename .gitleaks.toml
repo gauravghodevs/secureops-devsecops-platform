@@ -1,0 +1,12 @@
+title = "SecureOps Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Verified false positive: immutable GHCR image SHA in deleted temporary code bundle"
+paths = ['''^code_bundle\.txt$''']
+regexTarget = "match"
+regexes = [
+  '''ghcr\.io/gauravghodevs/secureops-payment-api:[a-f0-9]{40}'''
+]
