@@ -48,18 +48,24 @@ fi
 log CHECK "Running Payment API tests and lint"
 "$REPO_ROOT/scripts/quality-gate.sh"
 
-log CHECK "Rendering Kubernetes base manifests"
+log CHECK "Rendering Kubernetes base manifests & security primitives"
 kubectl kustomize "$REPO_ROOT/kubernetes/base" > "$TEMP_MANIFEST"
 
-grep -q '^kind: Deployment$' "$TEMP_MANIFEST" ||
-    fail "Rendered manifests do not contain a Deployment"
-
-grep -q '^kind: Service$' "$TEMP_MANIFEST" ||
-    fail "Rendered manifests do not contain a Service"
+for kind in Deployment Service ServiceAccount NetworkPolicy PodDisruptionBudget HorizontalPodAutoscaler; do
+    grep -q "^kind: ${kind}$" "$TEMP_MANIFEST" ||
+        fail "Rendered base manifests do not contain a ${kind}"
+done
 
 grep -q 'name: payment-api' "$TEMP_MANIFEST" ||
     fail "Rendered manifests do not contain payment-api"
 
-log PASS "Kubernetes manifests rendered and basic resource checks passed"
+log CHECK "Rendering Kubernetes environment overlays (dev, stage, prod, openshift)"
+for overlay in dev stage prod openshift; do
+    kubectl kustomize "$REPO_ROOT/kubernetes/overlays/${overlay}" > "$TEMP_MANIFEST"
+    grep -q '^kind: Deployment$' "$TEMP_MANIFEST" ||
+        fail "Overlay ${overlay} failed to render Deployment"
+    printf 'PASS: kubernetes/overlays/%s\n' "$overlay"
+done
 
+log PASS "Kubernetes manifests and all overlays rendered and verified"
 log PASS "SecureOps repository validation completed successfully"

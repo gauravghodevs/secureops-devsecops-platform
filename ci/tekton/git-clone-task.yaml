@@ -5,9 +5,9 @@ metadata:
   namespace: default
 spec:
   params:
-    - name: url
+    - name: repo-url
       type: string
-      default: https://github.com/gauravghodevs/DB19.git
+      default: https://github.com/gauravghodevs/secureops-devsecops-platform.git
     - name: revision
       type: string
       default: main
@@ -15,8 +15,9 @@ spec:
     - name: output
   steps:
     - name: clone
-      image: alpine/git:latest
+      image: alpine/git:2.47.2
       script: |
         #!/bin/sh
         set -eu
-        git clone --depth 1 --branch "$(params.revision)" "$(params.url)" "$(workspaces.output.path)"
+        rm -rf "$(workspaces.output.path)"/*
+        git clone --branch "$(params.revision)" --depth 1 "$(params.repo-url)" "$(workspaces.output.path)"

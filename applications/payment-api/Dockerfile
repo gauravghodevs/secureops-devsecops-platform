@@ -2,32 +2,40 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+COPY applications/payment-api/requirements.lock ./requirements.lock
 
-COPY applications/payment-api/requirements.txt ./requirements.txt
 
-RUN python -m pip install --no-cache-dir \
-    --upgrade "pip==26.2.1" "setuptools==84.0.0" \
-    && python -m pip install --no-cache-dir \
-       --prefix=/install -r requirements.txt
+
+RUN python -m pip install \
+    --only-binary=:all: \
+    --no-cache-dir \
+    --timeout 120 \
+    --retries 10 \
+    --require-hashes \
+    --prefix=/install \
+    -r requirements.lock
+
 
 FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY --from=builder /install /usr/local
 
-RUN python -m pip uninstall -y pip setuptools wheel
+# Remove packaging tools not required by the runtime application.
+RUN rm -rf \
+    /usr/local/lib/python3.11/site-packages/pip \
+    /usr/local/lib/python3.11/site-packages/pip-*.dist-info \
+    /usr/local/lib/python3.11/site-packages/setuptools \
+    /usr/local/lib/python3.11/site-packages/setuptools-*.dist-info \
+    /usr/local/lib/python3.11/site-packages/wheel \
+    /usr/local/lib/python3.11/site-packages/wheel-*.dist-info \
+    /usr/local/bin/pip \
+    /usr/local/bin/pip3 \
+    /usr/local/bin/pip3.11
 
-COPY applications/payment-api/app ./app
+COPY applications/payment-api/app/__init__.py ./app/__init__.py
+COPY applications/payment-api/app/main.py ./app/main.py
 
 RUN chgrp -R 0 /app \
     && chmod -R g=u /app

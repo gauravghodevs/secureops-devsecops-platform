@@ -21,3 +21,19 @@ spec:
       workspaces:
         - name: source
           workspace: source
+    - name: sbom-and-sca
+      runAfter:
+        - test-payment-api
+      taskRef:
+        name: payment-api-sbom-sca
+      workspaces:
+        - name: source
+          workspace: source
+    - name: build-and-scan
+      runAfter:
+        - sbom-and-sca
+      taskRef:
+        name: payment-api-build-scan
+      workspaces:
+        - name: source
+          workspace: source

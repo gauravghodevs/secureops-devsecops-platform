@@ -1,0 +1,6 @@
+---
+- name: Harden Linux Host
+  hosts: all
+  become: true
+  roles:
+    - hardening

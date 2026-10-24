@@ -5,28 +5,40 @@ on:
     branches: [main]
     paths:
       - "tests/observability/**"
+      - "observability/prometheus/alert-rules.yaml"
+      - "observability/prometheus/kustomization.yaml"
       - ".github/workflows/observability-alert-tests.yml"
   pull_request:
-    branches: [main]
     paths:
       - "tests/observability/**"
+      - "observability/prometheus/alert-rules.yaml"
+      - "observability/prometheus/kustomization.yaml"
       - ".github/workflows/observability-alert-tests.yml"
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  promtool-tests:
-    name: Prometheus alert rule tests
+  alert-rule-tests:
     runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
 
-      - name: Run alert regression tests
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Validate production alert rules
         run: |
-          docker run --rm --entrypoint /bin/promtool \
+          docker run --rm \
+            --entrypoint /bin/promtool \
+            -v "$PWD:/workspace" \
+            -w /workspace \
+            prom/prometheus:v3.5.0 \
+            check rules observability/prometheus/alert-rules.yaml
+
+      - name: Test production alert rules
+        run: |
+          docker run --rm \
+            --entrypoint /bin/promtool \
             -v "$PWD:/workspace" \
             -w /workspace \
             prom/prometheus:v3.5.0 \
