@@ -25,6 +25,10 @@ jobs:
       matrix:
         manifest-path:
           - kubernetes/base
+          - kubernetes/overlays/dev
+          - kubernetes/overlays/stage
+          - kubernetes/overlays/prod
+          - kubernetes/overlays/openshift
           - observability
 
     steps:

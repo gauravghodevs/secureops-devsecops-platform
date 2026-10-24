@@ -25,9 +25,15 @@ jobs:
   terraform-validation:
     name: Terraform Format and Validate
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - terraform/aws-networking
+          - terraform/aws-compute
     defaults:
       run:
-        working-directory: terraform/aws-networking
+        working-directory: ${{ matrix.module }}
 
     steps:
       - name: Check out source
@@ -61,9 +67,9 @@ jobs:
       - name: Install Ansible
         run: python -m pip install ansible-core==2.19.14
 
-      - name: Check Ansible playbook syntax
-        run: >-
-          ansible-playbook
-          -i ansible/inventory/localhost.ini
-          ansible/playbooks/audit.yml
-          --syntax-check
+      - name: Check Ansible playbooks syntax (audit and hardening)
+        env:
+          ANSIBLE_CONFIG: ansible/ansible.cfg
+        run: |
+          ansible-playbook -i ansible/inventory/localhost.ini ansible/playbooks/audit.yml --syntax-check
+          ansible-playbook -i ansible/inventory/localhost.ini ansible/playbooks/hardening.yml --syntax-check

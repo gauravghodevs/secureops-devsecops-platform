@@ -25,7 +25,7 @@ spec:
       runAfter:
         - test-payment-api
       taskRef:
-        name: payment-api-tests
+        name: payment-api-sbom-sca
       workspaces:
         - name: source
           workspace: source
@@ -33,7 +33,7 @@ spec:
       runAfter:
         - sbom-and-sca
       taskRef:
-        name: payment-api-tests
+        name: payment-api-build-scan
       workspaces:
         - name: source
           workspace: source

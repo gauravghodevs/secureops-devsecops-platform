@@ -16,3 +16,39 @@ spec:
         python -m pip install --no-cache-dir -r requirements-dev.txt
         python -m ruff check app tests
         python -m pytest -v
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: payment-api-sbom-sca
+  namespace: default
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: trivy-sbom-and-sca
+      image: aquasec/trivy:0.58.1
+      workingDir: $(workspaces.source.path)/applications/payment-api
+      script: |
+        #!/bin/sh
+        set -eu
+        trivy fs --format cyclonedx --output sbom-cyclonedx.json .
+        trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: payment-api-build-scan
+  namespace: default
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: validate-dockerfile-and-k8s-config
+      image: aquasec/trivy:0.58.1
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/sh
+        set -eu
+        trivy config --severity HIGH,CRITICAL --exit-code 1 applications/payment-api/Dockerfile
+        trivy config --severity HIGH,CRITICAL --exit-code 1 kubernetes/base
