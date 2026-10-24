@@ -1,0 +1,33 @@
+---
+- name: Ensure SELinux is enforcing
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=enforcing'
+  when: ansible_os_family == "RedHat"
+
+- name: Harden SSH daemon
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+  notify: Restart sshd
+
+- name: Install security packages
+  ansible.builtin.package:
+    name:
+      - firewalld
+      - fail2ban
+    state: present
+
+- name: Start services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - firewalld
+    - fail2ban

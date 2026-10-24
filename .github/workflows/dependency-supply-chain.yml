@@ -37,38 +37,26 @@ jobs:
 
       - name: Install locked runtime dependencies
         run: |
-          python -m pip install \
-            --only-binary=:all: \
-            --require-hashes \
-            --requirement requirements.lock
+          python -m pip install             --only-binary=:all:             --require-hashes             --requirement requirements.lock
 
       - name: Record runtime dependencies
         run: |
           mkdir -p "$RUNNER_TEMP/secureops-reports"
-          python -m pip freeze \
-            > "$RUNNER_TEMP/secureops-reports/runtime-requirements.txt"
+          python -m pip freeze             > "$RUNNER_TEMP/secureops-reports/runtime-requirements.txt"
 
       - name: Install security tooling
         run: |
-          python -m pip install --only-binary=:all: \
-            pip-audit==2.10.1 \
-            cyclonedx-bom==7.5.0
+          python -m pip install --only-binary=:all:             pip-audit==2.10.1             cyclonedx-bom==7.5.0
 
       - name: Audit runtime dependencies
         id: audit
         continue-on-error: true
         run: |
-          pip-audit \
-            --requirement requirements.lock \
-            --format json \
-            --output "$RUNNER_TEMP/secureops-reports/payment-api-pip-audit.json"
+          pip-audit             --requirement requirements.lock             --format json             --output "$RUNNER_TEMP/secureops-reports/payment-api-pip-audit.json"
 
       - name: Generate runtime CycloneDX SBOM
         run: |
-          cyclonedx-py requirements \
-            "$RUNNER_TEMP/secureops-reports/runtime-requirements.txt" \
-            --output-format JSON \
-            --output-file "$RUNNER_TEMP/secureops-reports/payment-api-runtime.cdx.json"
+          cyclonedx-py requirements             "$RUNNER_TEMP/secureops-reports/runtime-requirements.txt"             --output-format JSON             --output-file "$RUNNER_TEMP/secureops-reports/payment-api-runtime.cdx.json"
 
       - name: Upload audit and SBOM reports
         if: always()
