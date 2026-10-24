@@ -55,7 +55,7 @@ tests:
       - eval_time: 6m
         alertname: PaymentAPIHighErrorRate
         exp_alerts: []
-      - eval_time: 7m + 15s
+      - eval_time: 7m15s
         alertname: PaymentAPIHighErrorRate
         exp_alerts:
           - exp_labels:

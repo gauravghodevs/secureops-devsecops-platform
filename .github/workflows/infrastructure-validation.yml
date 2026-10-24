@@ -31,9 +31,6 @@ jobs:
         module:
           - terraform/aws-networking
           - terraform/aws-compute
-    defaults:
-      run:
-        working-directory: ${{ matrix.module }}
 
     steps:
       - name: Check out source
@@ -46,16 +43,18 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Initialize Terraform without backend
+        working-directory: ${{ matrix.module }}
         run: terraform init -backend=false -input=false
 
       - name: Validate Terraform configuration
+        working-directory: ${{ matrix.module }}
         run: terraform validate -no-color
 
       - name: Scan Terraform configuration with Trivy
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: config
-          scan-ref: .
+          scan-ref: ${{ matrix.module }}
           severity: HIGH,CRITICAL
           exit-code: "1"
 
