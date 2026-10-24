@@ -5,6 +5,7 @@ WORKDIR /build
 COPY applications/payment-api/requirements.lock ./requirements.lock
 
 RUN python -m pip install \
+    --only-binary=:all: \
     --no-cache-dir \
     --require-hashes \
     --prefix=/install \
