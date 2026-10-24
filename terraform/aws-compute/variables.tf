@@ -17,5 +17,4 @@ variable "instance_type" {
 variable "admin_cidr" {
   description = "Trusted VPN or internal CIDR block allowed to access SSH and tooling UIs."
   type        = string
-  default     = "10.20.0.0/16"
 }
