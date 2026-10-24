@@ -287,7 +287,6 @@ jobs:
           output: trivy-image.txt
           vuln-type: os,library
           severity: HIGH,CRITICAL
-          ignore-unfixed: true
           exit-code: "0"
 
       - name: Scan image with Trivy (enforce security gate)
