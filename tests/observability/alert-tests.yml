@@ -1,26 +1,45 @@
 rule_files:
-  - alert-test-rules.yml
+  - ../../observability/prometheus/alert-rules.yaml
 
 evaluation_interval: 15s
 
 tests:
-  - name: synthetic alert transitions from pending to firing and resolves
+  - name: PaymentAPIDown fires after one minute
     interval: 15s
     input_series:
-      - series: 'test_metric{source="synthetic-test"}'
-        values: '1+0x4 0+0x8'
+      - series: 'up{job="kubernetes-services",service="payment-api"}'
+        values: '0+0x12'
     alert_rule_test:
       - eval_time: 45s
-        alertname: SecureOpsSyntheticAlert
+        alertname: PaymentAPIDown
         exp_alerts: []
       - eval_time: 1m
-        alertname: SecureOpsSyntheticAlert
+        alertname: PaymentAPIDown
         exp_alerts:
           - exp_labels:
-              source: synthetic-test
-              severity: test
+              job: kubernetes-services
+              service: payment-api
+              severity: critical
             exp_annotations:
-              summary: "Synthetic alert lifecycle test"
-      - eval_time: 2m
-        alertname: SecureOpsSyntheticAlert
+              summary: "Payment API is down"
+              description: "Prometheus has been unable to scrape the Payment API for more than one minute."
+
+  - name: PaymentAPITargetsMissing fires when no API target exists
+    interval: 15s
+    input_series:
+      - series: 'up{job="unrelated-job",service="unrelated-service"}'
+        values: '1+0x12'
+    alert_rule_test:
+      - eval_time: 45s
+        alertname: PaymentAPITargetsMissing
         exp_alerts: []
+      - eval_time: 1m
+        alertname: PaymentAPITargetsMissing
+        exp_alerts:
+          - exp_labels:
+              job: kubernetes-services
+              service: payment-api
+              severity: critical
+            exp_annotations:
+              summary: "Payment API targets are missing"
+              description: "Prometheus cannot find any discovered Payment API targets for more than one minute."

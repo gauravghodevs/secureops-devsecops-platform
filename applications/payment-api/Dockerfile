@@ -2,32 +2,22 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+COPY applications/payment-api/requirements.lock ./requirements.lock
 
-COPY applications/payment-api/requirements.txt ./requirements.txt
-
-RUN python -m pip install --no-cache-dir \
-    --upgrade "pip==26.2.1" "setuptools==84.0.0" \
-    && python -m pip install --no-cache-dir \
-       --prefix=/install -r requirements.txt
+RUN python -m pip install \
+    --no-cache-dir \
+    --require-hashes \
+    --prefix=/install \
+    -r requirements.lock
 
 FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY --from=builder /install /usr/local
 
-RUN python -m pip uninstall -y pip setuptools wheel
-
-COPY applications/payment-api/app ./app
+COPY applications/payment-api/app/__init__.py ./app/__init__.py
+COPY applications/payment-api/app/main.py ./app/main.py
 
 RUN chgrp -R 0 /app \
     && chmod -R g=u /app
