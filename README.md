@@ -35,13 +35,13 @@ The following capabilities are implemented and tested today:
 | Kustomize base | Implemented | `kubernetes/base` |
 | OpenShift deployment | Planned | Next platform stage |
 | Jenkins pipeline | Configured and previously verified successful | `ci/jenkins/Jenkinsfile` |
-| Tekton | Implemented and verified: PipelineRun succeeded; linting passed and 7 tests passed | `ci/tekton/payment-api-pipeline.yaml` |
+| Tekton | Separate clone, test, SBOM/SCA, and build/config-scan tasks are defined; end-to-end execution of all stages still needs evidence | `ci/tekton/payment-api-pipeline.yaml` |
 | SonarQube SAST | Planned | Security stage |
 | CycloneDX SBOM generation | Implemented | `.github/workflows/dependency-supply-chain.yml` |
 | Argo CD GitOps | Implemented and verified | `argocd/` |
-| Terraform AWS infrastructure | Implemented and verified | `terraform/` |
-| Ansible configuration management | Implemented and verified | `ansible/` |
-| Prometheus / Grafana / Alertmanager | Deployed and verified | `observability/` |
+| Terraform AWS infrastructure | Networking and compute modules plus CI validation are configured; AWS provisioning is not verified | `terraform/` and infrastructure workflow |
+| Ansible configuration management | Audit and hardening playbooks/roles are configured; host-level application is not verified | `ansible/` and infrastructure workflow |
+| Prometheus / Grafana / Alertmanager | Pods and Argo CD monitoring application were healthy in the latest reported Kind check; alert delivery still needs verification | `observability/` |
 | Centralized ELK logging | Planned | Logging stage |
 
 ## Architecture Target
@@ -166,7 +166,7 @@ Application
 The `payment-api` Deployment applies Kubernetes container security controls:
 
 - `runAsNonRoot: true` — prevents the container from running as root.
-- `runAsUser: 10001` — runs the application with the non-root UID configured in the image.
+- The base Deployment does not hardcode `runAsUser`, allowing platforms such as OpenShift to assign a namespace-approved UID; OpenShift runtime compatibility still requires a real deployment test.
 - `allowPrivilegeEscalation: false` — disables privilege escalation.
 - `capabilities.drop: [ALL]` — drops all Linux capabilities from the container.
 - `seccompProfile.type: RuntimeDefault` — uses the container runtime's default seccomp profile.
@@ -197,13 +197,13 @@ The application CI workflow includes automated tests and linting, Kubernetes man
 
 The Payment API CI workflow scans the built container image with Trivy for OS and application-library vulnerabilities. The blocking scan is configured for **HIGH** and **CRITICAL** severity findings and ignores unfixed vulnerabilities. A blocking finding fails the workflow before the image-publishing step; the workflow also uploads human-readable and JSON reports for investigation.
 
-Latest verified evidence (2026-10-21): the [Payment API CI run](https://github.com/gauravghodevs/DB19/actions/runs/39586445574) completed successfully. Its uploaded Trivy reports recorded **zero detected vulnerabilities** in the scanned OS and Python package results. This is a point-in-time result for that image and vulnerability database, not a guarantee that the image is vulnerability-free. Review the report artifact from the workflow run when investigating findings.
+Latest verified evidence (2026-10-21): the [Payment API CI run](https://github.com/gauravghodevs/secureops-devsecops-platform/actions/runs/39586445574) completed successfully. Its uploaded Trivy reports recorded **zero detected vulnerabilities** in the scanned OS and Python package results. This is a point-in-time result for that image and vulnerability database, not a guarantee that the image is vulnerability-free. Review the report artifact from the workflow run when investigating findings.
 
 Jenkins pipeline execution has previously been verified successfully. The Tekton payment API pipeline has also been executed successfully: source cloning, Ruff linting, and all 7 tests passed. Argo CD synchronization has been verified in the live cluster.
 
 Workflow configuration and execution results are separate evidence. Check the relevant GitHub Actions run before claiming a gate passed.
 
-## Planned Infrastructure Automation
+## Infrastructure Automation Status
 
 ### Terraform
 
@@ -225,7 +225,7 @@ Target configuration-management responsibilities include:
 - security hardening
 - operational configuration
 
-These components will be marked implemented only after testing.
+The Terraform and Ansible configuration files exist and their validation is wired into CI. This is not evidence that AWS resources were applied or that hardening was executed against a managed host.
 
 ## Observability and Logging
 
@@ -361,11 +361,14 @@ Jenkins execution was previously verified successfully. The Tekton PipelineRun c
 - [ ] Integrate Tekton into the broader delivery path
 - [ ] Configure and verify a SonarQube SAST quality gate
 - [ ] Integrate Dependency-Track, if required beyond SBOM generation
-- [ ] Verify Argo CD synchronization against a live cluster
-- [ ] Deploy and validate the Prometheus/Grafana stack and alert delivery
+- [x] Verify Argo CD synchronization against a live cluster (latest reported check: both Applications `Synced` and `Healthy`; retain dated evidence in the repository)
+- [x] Deploy Prometheus/Grafana/Alertmanager on Kind and verify pod/application health
+- [ ] Verify an alert firing through Alertmanager to a configured receiver
 - [ ] Deploy to OpenShift
-- [ ] Implement and test Terraform AWS infrastructure
-- [ ] Implement and test Ansible configuration management
+- [x] Configure and validate Terraform networking and compute modules in CI
+- [ ] Apply AWS infrastructure only in an explicitly approved account/environment and retain plan/apply evidence
+- [x] Add audit/hardening playbooks and CI syntax/lint checks
+- [ ] Verify hardening against a disposable target host
 - [ ] Implement centralized logging with ELK
 - [ ] Expand incident runbooks and operational automation
 - [ ] Add final architecture, validation evidence, and interview documentation
