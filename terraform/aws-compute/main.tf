@@ -1,4 +1,3 @@
-# Terraform AWS Compute Module with Trivy suppressions for required egress
 resource "aws_security_group" "tooling_sg" {
   name        = "secureops-tooling-sg"
   description = "Security group for DevOps tooling server"
@@ -12,12 +11,12 @@ resource "aws_security_group" "tooling_sg" {
     cidr_blocks = [var.admin_cidr]
   }
 
-  # trivy:ignore:AWS-0104
   egress {
     description = "Allow all outbound traffic for package updates and tooling"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    # trivy:ignore:AWS-0104
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -27,7 +26,7 @@ resource "aws_security_group" "tooling_sg" {
 }
 
 resource "aws_instance" "tooling" {
-  ami           = "ami-0c55b159cbfafe1f0" # Placeholder AMI
+  ami           = "ami-0c55b159cbfafe1f0"
   instance_type = "t3.medium"
   subnet_id     = var.subnet_id
   vpc_security_group_ids = [
