@@ -52,7 +52,7 @@ tests:
       - series: 'payment_api_requests_total{job="kubernetes-services",service="payment-api",http_status="200"}'
         values: '0+80x10'
     alert_rule_test:
-      - eval_time: 5m
+      - eval_time: 2m
         alertname: PaymentAPIHighErrorRate
         exp_alerts: []
       - eval_time: 7m15s
