@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/gauravghodevs/secureops-devsecops-platform.git
     targetRevision: main
-    path: observability
+    path: observability-kind
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
