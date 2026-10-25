@@ -45,17 +45,17 @@ tests:
               description: "Prometheus cannot find any discovered Payment API targets for more than one minute."
 
   - name: PaymentAPIHighErrorRate fires when 5xx ratio exceeds 5 percent for 2m
-    interval: 1m
+    interval: 15s
     input_series:
       - series: 'payment_api_requests_total{job="kubernetes-services",service="payment-api",http_status="500"}'
-        values: '0+20x10'
+        values: '0+5x40'
       - series: 'payment_api_requests_total{job="kubernetes-services",service="payment-api",http_status="200"}'
-        values: '0+80x10'
+        values: '0+20x40'
     alert_rule_test:
-      - eval_time: 2m
+      - eval_time: 1m
         alertname: PaymentAPIHighErrorRate
         exp_alerts: []
-      - eval_time: 7m15s
+      - eval_time: 5m
         alertname: PaymentAPIHighErrorRate
         exp_alerts:
           - exp_labels:
