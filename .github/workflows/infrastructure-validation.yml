@@ -72,9 +72,11 @@ jobs:
           python-version: "3.11"
 
       - name: Install Ansible and Linting Tools
-        run: python -m pip install ansible-core==2.19.14 ansible-lint
+        run: python -m pip install ansible-core==2.19.14 ansible-lint==26.10.1
 
       - name: Run Ansible Lint
+        env:
+          ANSIBLE_CONFIG: ansible/ansible.cfg
         run: ansible-lint ansible/playbooks/
 
       - name: Check Ansible playbooks syntax
