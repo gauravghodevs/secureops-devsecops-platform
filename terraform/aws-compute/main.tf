@@ -33,6 +33,10 @@ resource "aws_instance" "tooling" {
     aws_security_group.tooling_sg.id
   ]
 
+  metadata_options {
+    http_tokens = "required"
+  }
+
   root_block_device {
     encrypted   = true
     volume_size = 30
