@@ -18,3 +18,23 @@ groups:
         annotations:
           summary: "Payment API targets are missing"
           description: "Prometheus cannot find any discovered Payment API targets for more than one minute."
+
+  - name: secureops-kubernetes-workloads
+    rules:
+      - alert: ContainerRestartingFrequently
+        expr: increase(kube_pod_container_status_restarts_total[15m]) >= 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container is restarting frequently"
+          description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted at least three times over 15 minutes."
+
+      - alert: ContainerOOMKilled
+        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container was OOMKilled"
+          description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} was terminated because of an out-of-memory condition."

@@ -6,7 +6,7 @@
     line: 'SELINUX=enforcing'
   when: ansible_os_family == "RedHat"
 
-- name: Harden SSH daemon
+- name: Harden SSH daemon configuration
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
@@ -14,16 +14,18 @@
   loop:
     - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
     - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+    - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
   notify: Restart sshd
 
-- name: Install security packages
+- name: Install baseline security packages (firewalld, fail2ban, auditd)
   ansible.builtin.package:
     name:
       - firewalld
       - fail2ban
+      - auditd
     state: present
 
-- name: Start services
+- name: Enable and start security services
   ansible.builtin.systemd:
     name: "{{ item }}"
     enabled: true
@@ -31,3 +33,4 @@
   loop:
     - firewalld
     - fail2ban
+    - auditd

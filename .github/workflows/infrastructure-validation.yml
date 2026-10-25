@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   terraform-validation:
-    name: Terraform Format and Validate
+    name: Terraform Format, Validate & Security Scan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -31,9 +31,6 @@ jobs:
         module:
           - terraform/aws-networking
           - terraform/aws-compute
-    defaults:
-      run:
-        working-directory: ${{ matrix.module }}
 
     steps:
       - name: Check out source
@@ -46,13 +43,23 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Initialize Terraform without backend
+        working-directory: ${{ matrix.module }}
         run: terraform init -backend=false -input=false
 
       - name: Validate Terraform configuration
+        working-directory: ${{ matrix.module }}
         run: terraform validate -no-color
 
+      - name: Scan Terraform configuration with Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: ${{ matrix.module }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
   ansible-validation:
-    name: Ansible Syntax Validation
+    name: Ansible Syntax Validation & Linting
     runs-on: ubuntu-latest
 
     steps:
@@ -64,10 +71,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Ansible
-        run: python -m pip install ansible-core==2.19.14
+      - name: Install Ansible and Linting Tools
+        run: python -m pip install ansible-core==2.19.14 ansible-lint==26.10.1
 
-      - name: Check Ansible playbooks syntax (audit and hardening)
+      - name: Run Ansible Lint
+        env:
+          ANSIBLE_CONFIG: ansible/ansible.cfg
+        run: ansible-lint ansible/playbooks/
+
+      - name: Check Ansible playbooks syntax
         env:
           ANSIBLE_CONFIG: ansible/ansible.cfg
         run: |

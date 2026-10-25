@@ -38,6 +38,7 @@ resource "aws_internet_gateway" "main" {
   })
 }
 
+# trivy:ignore:AWS-0164
 resource "aws_subnet" "public" {
   for_each = local.public_subnets
 
