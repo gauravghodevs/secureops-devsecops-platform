@@ -75,7 +75,7 @@ jobs:
         run: python -m pip install ansible-core==2.19.14 ansible-lint
 
       - name: Run Ansible Lint
-        run: ansible-lint ansible/playbooks/ || true
+        run: ansible-lint ansible/playbooks/
 
       - name: Check Ansible playbooks syntax
         env:
