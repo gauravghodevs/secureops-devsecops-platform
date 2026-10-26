@@ -19,7 +19,19 @@ groups:
           summary: "Payment API targets are missing"
           description: "Prometheus cannot find any discovered Payment API targets for more than one minute."
 
+      - alert: PaymentAPIHighErrorRate
+        expr: |
+          sum(rate(payment_api_responses_total{status_code=~"5.."}[5m]))
+            / sum(rate(payment_api_responses_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Payment API 5xx ratio above 5%"
+          description: "More than 5% of Payment API responses have been 5xx for 5 minutes."
+
   - name: secureops-kubernetes-workloads
+    # Series come from kube-state-metrics (scraped with honor_labels).
     rules:
       - alert: ContainerRestartingFrequently
         expr: increase(kube_pod_container_status_restarts_total[15m]) >= 3
@@ -30,9 +42,13 @@ groups:
           summary: "Container is restarting frequently"
           description: "Container {{ $labels.container }} in pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted at least three times over 15 minutes."
 
+      # last_terminated_reason stays at 1 until the pod is replaced, so also require a
+      # restart in the last 10 minutes; otherwise this alert would never resolve.
       - alert: ContainerOOMKilled
-        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
-        for: 0m
+        expr: |
+          kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+            and on (namespace, pod, container)
+          increase(kube_pod_container_status_restarts_total[10m]) > 0
         labels:
           severity: critical
         annotations:

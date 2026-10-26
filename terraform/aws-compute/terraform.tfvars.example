@@ -1,0 +1,7 @@
+# cp terraform.tfvars.example terraform.tfvars   (terraform.tfvars is git-ignored)
+# Values come from the networking module:
+#   terraform -chdir=../aws-networking output -raw vpc_id
+#   terraform -chdir=../aws-networking output -json public_subnet_ids
+vpc_id     = "vpc-0123456789abcdef0"
+subnet_id  = "subnet-0123456789abcdef0"
+admin_cidr = "203.0.113.7/32"

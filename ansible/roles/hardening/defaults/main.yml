@@ -1,0 +1,7 @@
+---
+hardening_apply_security_updates: true
+hardening_ssh_max_auth_tries: 3
+hardening_packages:
+  - firewalld
+  - audit
+  - chrony

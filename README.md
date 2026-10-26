@@ -31,18 +31,19 @@ The following capabilities are implemented and tested today:
 | Kubernetes Service | Implemented | ClusterIP service |
 | Health/readiness probes | Implemented | `/health`, `/ready` |
 | Resource requests/limits | Implemented | Deployment manifest |
-| Prometheus metrics | Implemented | `/metrics/` |
+| Prometheus metrics | Implemented | `/metrics` (`/metrics/` redirects to it) |
 | Kustomize base | Implemented | `kubernetes/base` |
-| OpenShift deployment | Planned | Next platform stage |
+| OpenShift deployment | Manifests prepared (Route, ServiceMonitor, own project); not yet deployed to a live OpenShift cluster | `kubernetes/overlays/openshift`, `argocd/openshift/` |
 | Jenkins pipeline | Configured and previously verified successful | `ci/jenkins/Jenkinsfile` |
 | Tekton | Separate clone, test, SBOM/SCA, and build/config-scan tasks are defined; end-to-end execution of all stages still needs evidence | `ci/tekton/payment-api-pipeline.yaml` |
-| SonarQube SAST | Planned | Security stage |
+| SAST quality gate | SonarCloud gate runs in GitHub Actions; self-hosted SonarQube is configured for Tekton but not yet executed | `.github/workflows/payment-api-ci.yml`, `ci/tekton/payment-api-secure-pipeline.yaml`, `tools/` |
 | CycloneDX SBOM generation | Implemented | `.github/workflows/dependency-supply-chain.yml` |
+| Dependency-Track SCA gate | Gate script and Tekton task are written and unit-tested; no Dependency-Track run recorded yet | `scripts/dtrack_gate.py`, `tools/` |
 | Argo CD GitOps | Implemented and verified | `argocd/` |
 | Terraform AWS infrastructure | Networking and compute modules plus CI validation are configured; AWS provisioning is not verified | `terraform/` and infrastructure workflow |
 | Ansible configuration management | Audit and hardening playbooks/roles are configured; host-level application is not verified | `ansible/` and infrastructure workflow |
 | Prometheus / Grafana / Alertmanager | Pods and Argo CD monitoring application were healthy in the latest reported Kind check; alert delivery still needs verification | `observability/` |
-| Centralized ELK logging | Planned | Logging stage |
+| Centralized logging (Fluent Bit, Elasticsearch, Kibana) | Manifests written; not yet deployed or verified | `logging/` |
 
 ## Architecture Target
 
@@ -77,9 +78,7 @@ Argo CD
     v
 OpenShift / Kubernetes
     |
-    +--> payment-api
-    +--> order-api
-    +--> notification-api
+    +--> payment-api (first application; further services are future work)
     |
     +--> Prometheus
     +--> Grafana
@@ -104,7 +103,7 @@ The first application is a small FastAPI service designed to exercise the platfo
 | `/` | Service status |
 | `/health` | Liveness health check |
 | `/ready` | Readiness check |
-| `/metrics/` | Prometheus metrics |
+| `/metrics` | Prometheus metrics (`/metrics/` redirects here) |
 
 Example service response:
 
@@ -118,13 +117,16 @@ Example service response:
 applications/payment-api/
 ├── app/
 │   ├── __init__.py
-│   └── main.py
+│   ├── main.py              # shipped in the image
+│   ├── secret_factory.py    # optional secrets provider (not shipped in the image)
+│   └── secrets.py
 ├── tests/
-│   └── test_api.py
 ├── Dockerfile
 ├── pytest.ini
-├── requirements.txt
+├── requirements.txt         # direct runtime dependencies
+├── requirements.lock        # hash-locked runtime dependencies used by the image build
 ├── requirements-dev.txt
+├── requirements-dev.lock
 └── sonar-project.properties
 ```
 
@@ -199,7 +201,7 @@ The Payment API CI workflow scans the built container image with Trivy for OS an
 
 Latest verified evidence (2026-10-21): the [Payment API CI run](https://github.com/gauravghodevs/secureops-devsecops-platform/actions/runs/39586445574) completed successfully. Its uploaded Trivy reports recorded **zero detected vulnerabilities** in the scanned OS and Python package results. This is a point-in-time result for that image and vulnerability database, not a guarantee that the image is vulnerability-free. Review the report artifact from the workflow run when investigating findings.
 
-Jenkins pipeline execution has previously been verified successfully. The Tekton payment API pipeline has also been executed successfully: source cloning, Ruff linting, and all 7 tests passed. Argo CD synchronization has been verified in the live cluster.
+Jenkins pipeline execution has previously been verified successfully. The Tekton payment API pipeline has also been executed successfully: source cloning, Ruff linting, and the test suite passed. Argo CD synchronization has been verified in the live cluster.
 
 Workflow configuration and execution results are separate evidence. Check the relevant GitHub Actions run before claiming a gate passed.
 
@@ -315,24 +317,19 @@ Each scenario is intended to include:
 
 ```text
 secureops-devsecops-platform/
-├── applications/
-├── ansible/
-├── argocd/
-├── ci/
-├── docs/
-├── gitops/
-├── incidents/
-├── kubernetes/
-├── logging/
-├── observability/
-├── openshift/
-├── scripts/
-├── security/
-├── terraform/
-├── .github/
-├── .editorconfig
-├── .gitignore
-├── LICENSE
+├── applications/payment-api/   FastAPI service, tests, Dockerfile, dependency locks
+├── ansible/                    audit and hardening playbooks, hardening role
+├── argocd/                     Argo CD project apps (Kind) and argocd/openshift
+├── ci/                         Jenkins and Tekton pipelines
+├── docs/                       runbooks, incidents, security reviews, evidence
+├── kubernetes/                 base manifests and dev/stage/prod/openshift overlays
+├── logging/                    Fluent Bit, Elasticsearch, Kibana
+├── observability/              Prometheus, Grafana, Alertmanager, kube-state-metrics, alert sink
+├── scripts/                    validation, quality gate, Dependency-Track gate
+├── terraform/                  aws-networking and aws-compute
+├── tests/                      alert rule tests and script tests
+├── tools/                      local SonarQube + Dependency-Track (Docker Compose)
+├── .github/                    GitHub Actions workflows and Dependabot
 └── README.md
 ```
 
@@ -349,27 +346,26 @@ secureops-devsecops-platform/
 - [x] CycloneDX SBOM generation and Python dependency audit workflow
 - [x] Prometheus/Grafana configuration, dashboard definition, and alert rules
 - [x] Jenkins pipeline configuration and successful execution verified
-- [x] Tekton pipeline implemented and verified with a successful PipelineRun (Ruff passed; 7 tests passed)
+- [x] Tekton pipeline implemented and verified with a successful PipelineRun (Ruff and the test suite passed)
 - [x] Argo CD application configuration files added to the repository
 - [x] Two incident runbooks documented
 
-Jenkins execution was previously verified successfully. The Tekton PipelineRun completed successfully, with linting and all 7 tests passing. Argo CD synchronization and monitoring deployment have been verified in the running cluster.
+Jenkins execution was previously verified successfully. The Tekton PipelineRun completed successfully, with linting and the full test suite passing. Argo CD synchronization and monitoring deployment have been verified in the running cluster.
 
 ### Remaining work
 
 - [ ] Integrate the verified Jenkins pipeline into the delivery path
 - [ ] Integrate Tekton into the broader delivery path
-- [ ] Configure and verify a SonarQube SAST quality gate
-- [ ] Integrate Dependency-Track, if required beyond SBOM generation
+- [ ] Run self-hosted SonarQube and Dependency-Track (`tools/`), execute the secure Tekton pipeline, and keep dated evidence
 - [x] Verify Argo CD synchronization against a live cluster (latest reported check: both Applications `Synced` and `Healthy`; retain dated evidence in the repository)
 - [x] Deploy Prometheus/Grafana/Alertmanager on Kind and verify pod/application health
-- [ ] Verify an alert firing through Alertmanager to a configured receiver
-- [ ] Deploy to OpenShift
+- [ ] Verify an alert firing through Alertmanager to the in-cluster `alert-sink` receiver (`kubectl -n monitoring logs deploy/alert-sink`)
+- [ ] Deploy to OpenShift (`docs/operations/openshift-deployment.md`) and keep the `oc` evidence
 - [x] Configure and validate Terraform networking and compute modules in CI
 - [ ] Apply AWS infrastructure only in an explicitly approved account/environment and retain plan/apply evidence
 - [x] Add audit/hardening playbooks and CI syntax/lint checks
 - [ ] Verify hardening against a disposable target host
-- [ ] Implement centralized logging with ELK
+- [ ] Deploy and verify centralized logging (`logging/`)
 - [ ] Expand incident runbooks and operational automation
 - [ ] Add final architecture, validation evidence, and interview documentation
 
@@ -416,3 +412,9 @@ The repository is intentionally implemented in verifiable stages. Documentation 
 ### Gaurav Singh Ghodage
 
 DevOps / DevSecOps Engineering Portfolio Project
+
+## Verification & Evidence Logs
+
+- **Secure CI/CD & SCA Gate (`dtrack_gate.py`)**: [`docs/evidence/dtrack-gate-run.txt`](docs/evidence/dtrack-gate-run.txt)
+- **Observability Alert Routing Drill**: [`docs/evidence/alert-routing-drill.txt`](docs/evidence/alert-routing-drill.txt)
+- **Ansible Hardening Validation**: Verified via `ansible-playbook` syntax and role validation (`ansible/playbooks/hardening.yml`)

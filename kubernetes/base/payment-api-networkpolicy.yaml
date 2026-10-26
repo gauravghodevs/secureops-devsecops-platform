@@ -15,6 +15,16 @@ spec:
     - ports:
         - protocol: TCP
           port: 8000
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
   egress:
     - ports:
         - protocol: UDP

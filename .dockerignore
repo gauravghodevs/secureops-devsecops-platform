@@ -1,0 +1,8 @@
+# The image is built with the repository root as the context
+# (docker build -f applications/payment-api/Dockerfile .), so exclude everything the
+# Dockerfile does not COPY. This keeps docs, terraform, .git and secrets out of the build.
+*
+!applications/payment-api/requirements.lock
+!applications/payment-api/app/__init__.py
+!applications/payment-api/app/main.py
+**/__pycache__

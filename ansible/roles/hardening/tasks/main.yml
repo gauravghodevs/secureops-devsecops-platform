@@ -1,29 +1,52 @@
 ---
-- name: Ensure SELinux is enforcing
-  ansible.builtin.lineinfile:
-    path: /etc/selinux/config
-    regexp: '^SELINUX='
-    line: 'SELINUX=enforcing'
-  when: ansible_os_family == "RedHat"
+- name: Apply pending security updates
+  ansible.builtin.dnf:
+    name: "*"
+    security: true
+    state: latest # noqa: package-latest
+  when: hardening_apply_security_updates | bool
 
-- name: Harden SSH daemon configuration
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  loop:
-    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
-    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
-    - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+- name: Install baseline security packages
+  ansible.builtin.dnf:
+    name: "{{ hardening_packages }}"
+    state: present
+
+# sshd keeps the FIRST value it reads and loads sshd_config.d/* in file-name order, so
+# this drop-in is named 01- to win over cloud-init's later file. validate runs "sshd -t"
+# on the new file first, so a typo can never lock you out.
+- name: Harden the SSH daemon
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/01-hardening.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitEmptyPasswords no
+      X11Forwarding no
+      MaxAuthTries {{ hardening_ssh_max_auth_tries }}
+      LoginGraceTime 30
+    owner: root
+    group: root
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
   notify: Restart sshd
 
-- name: Install baseline security packages (firewalld, fail2ban, auditd)
-  ansible.builtin.package:
-    name:
-      - firewalld
-      - fail2ban
-      - auditd
-    state: present
+- name: Apply kernel network hardening
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/90-hardening.conf
+    content: |
+      net.ipv4.conf.all.rp_filter = 1
+      net.ipv4.conf.all.accept_source_route = 0
+      net.ipv4.conf.all.accept_redirects = 0
+      net.ipv4.conf.all.send_redirects = 0
+      net.ipv4.icmp_echo_ignore_broadcasts = 1
+      net.ipv4.tcp_syncookies = 1
+      kernel.randomize_va_space = 2
+      fs.suid_dumpable = 0
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sysctl settings
 
 - name: Enable and start security services
   ansible.builtin.systemd:
@@ -32,5 +55,15 @@
     state: started
   loop:
     - firewalld
-    - fail2ban
     - auditd
+    - chronyd
+
+# Amazon Linux 2023 ships SELinux in permissive mode and switching to enforcing needs a
+# relabel and reboot, so enforce it only on RHEL-family distributions that boot enforcing.
+- name: Ensure SELinux is enforcing on RHEL-family hosts
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=enforcing'
+    mode: "0644"
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution'] != "Amazon"

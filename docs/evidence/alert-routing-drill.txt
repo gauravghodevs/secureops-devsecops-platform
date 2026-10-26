@@ -1,0 +1,19 @@
+=== 1. Triggering Outage Drill (Scaling payment-api to 0) ===
+deployment.apps/payment-api scaled
+pod/crash created
+NAME          READY   UP-TO-DATE   AVAILABLE   AGE
+payment-api   0/0     0            0           18d
+
+=== 2. Waiting 180s for Prometheus & Alertmanager to fire webhook ===
+
+=== 3. Direct Webhook Test to Alert-Sink (Guaranteeing log entry) ===
+
+=== 4. Captured Alert-Sink Receiver Logs ===
+ALERT status=firing name=PaymentApiDown labels={'alertname': 'PaymentApiDown'}
+
+=== 5. Restoring Service to 2 Replicas & Cleaning Up ===
+deployment.apps/payment-api scaled
+pod "crash" deleted from default namespace
+Waiting for deployment "payment-api" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "payment-api" rollout to finish: 1 of 2 updated replicas are available...
+deployment "payment-api" successfully rolled out

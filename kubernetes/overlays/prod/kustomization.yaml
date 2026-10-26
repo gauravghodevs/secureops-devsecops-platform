@@ -10,6 +10,10 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 3
-      - op: add
-        path: /spec/template/spec/serviceAccountName
-        value: payment-api-sa
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: payment-api-hpa
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 3

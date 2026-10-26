@@ -1,0 +1,4 @@
+# Generate the real file from Terraform (it is git-ignored):
+#   terraform -chdir=../terraform/aws-compute output -raw ansible_inventory > inventory/hosts.ini
+[tooling]
+203.0.113.10 ansible_user=ec2-user

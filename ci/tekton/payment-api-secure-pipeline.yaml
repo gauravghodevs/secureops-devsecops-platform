@@ -1,0 +1,187 @@
+# Security-gate pipeline: tests -> SAST (SonarQube) + SCA (Dependency-Track) -> config scan.
+# It reuses the existing payment-api-git-clone, payment-api-tests and payment-api-build-scan
+# tasks and leaves the original payment-api-ci pipeline untouched.
+#
+# Secrets (create with scripts/create-ci-secrets.sh):
+#   sonar-credentials     SONAR_HOST_URL, SONAR_TOKEN
+#   dtrack-credentials    DT_URL, DT_API_KEY
+# From a Kind cluster the tools running on your machine are reachable at the host's LAN IP
+# (for example http://192.168.1.50:9000), not at localhost.
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: payment-api-sonarqube-scan
+  namespace: default
+spec:
+  params:
+    - name: project-key
+      type: string
+      default: secureops-payment-api
+    - name: project-version
+      type: string
+      default: latest
+    - name: scanner-image
+      type: string
+      default: sonarsource/sonar-scanner-cli:latest
+  workspaces:
+    - name: source
+  steps:
+    - name: coverage
+      image: python:3.11-slim
+      workingDir: $(workspaces.source.path)/applications/payment-api
+      script: |
+        #!/bin/sh
+        set -eu
+        # SonarQube's quality gate needs coverage.xml, so produce it before scanning.
+        python -m pip install --quiet --no-cache-dir -r requirements-dev.txt
+        python -m pytest --cov=app --cov-report=xml:coverage.xml -q
+    - name: scan
+      image: $(params.scanner-image)
+      workingDir: $(workspaces.source.path)/applications/payment-api
+      securityContext:
+        runAsUser: 0
+      env:
+        - name: SONAR_HOST_URL
+          valueFrom:
+            secretKeyRef:
+              name: sonar-credentials
+              key: SONAR_HOST_URL
+        - name: SONAR_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonar-credentials
+              key: SONAR_TOKEN
+      script: |
+        #!/bin/sh
+        set -eu
+        # sonar-project.properties targets SonarCloud (organization + project key).
+        # Self-hosted SonarQube has no organizations, so scan with a filtered copy.
+        grep -v -e '^sonar.organization' -e '^sonar.projectKey' sonar-project.properties > /tmp/sonar-selfhosted.properties
+        sonar-scanner \
+          -Dproject.settings=/tmp/sonar-selfhosted.properties \
+          -Dsonar.projectKey="$(params.project-key)" \
+          -Dsonar.projectVersion="$(params.project-version)" \
+          -Dsonar.scm.disabled=true \
+          -Dsonar.qualitygate.wait=true \
+          -Dsonar.qualitygate.timeout=300
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: payment-api-sbom-dtrack-gate
+  namespace: default
+spec:
+  params:
+    - name: project-name
+      type: string
+      default: payment-api
+    - name: project-version
+      type: string
+      default: latest
+    - name: max-critical
+      type: string
+      default: "0"
+    - name: max-high
+      type: string
+      default: "-1"
+  workspaces:
+    - name: source
+  steps:
+    - name: sbom-and-gate
+      image: python:3.11-slim
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DT_URL
+          valueFrom:
+            secretKeyRef:
+              name: dtrack-credentials
+              key: DT_URL
+        - name: DT_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: dtrack-credentials
+              key: DT_API_KEY
+      script: |
+        #!/bin/sh
+        set -eu
+        # Two virtualenvs so the SBOM describes the application, not the SBOM tool itself.
+        python -m venv /tmp/appvenv
+        /tmp/appvenv/bin/pip install --quiet --only-binary=:all: --require-hashes \
+          -r applications/payment-api/requirements.lock
+        /tmp/appvenv/bin/pip freeze > /tmp/runtime-requirements.txt
+        python -m venv /tmp/toolvenv
+        /tmp/toolvenv/bin/pip install --quiet cyclonedx-bom==7.5.0
+        /tmp/toolvenv/bin/cyclonedx-py requirements /tmp/runtime-requirements.txt \
+          --output-format JSON --output-file /tmp/sbom.json
+        python scripts/dtrack_gate.py \
+          --bom /tmp/sbom.json \
+          --project "$(params.project-name)" \
+          --version "$(params.project-version)" \
+          --max-critical "$(params.max-critical)" \
+          --max-high "$(params.max-high)"
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: payment-api-secure-ci
+  namespace: default
+spec:
+  params:
+    - name: revision
+      type: string
+      default: main
+  workspaces:
+    - name: source
+  tasks:
+    - name: clone-source
+      taskRef:
+        name: payment-api-git-clone
+      params:
+        - name: revision
+          value: $(params.revision)
+      workspaces:
+        - name: output
+          workspace: source
+
+    - name: test-payment-api
+      runAfter:
+        - clone-source
+      taskRef:
+        name: payment-api-tests
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: sast-sonarqube
+      runAfter:
+        - test-payment-api
+      taskRef:
+        name: payment-api-sonarqube-scan
+      params:
+        - name: project-version
+          value: $(params.revision)
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: sca-dependency-track
+      runAfter:
+        - test-payment-api
+      taskRef:
+        name: payment-api-sbom-dtrack-gate
+      params:
+        - name: project-version
+          value: $(params.revision)
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: config-scan
+      runAfter:
+        - sast-sonarqube
+        - sca-dependency-track
+      taskRef:
+        name: payment-api-build-scan
+      workspaces:
+        - name: source
+          workspace: source
