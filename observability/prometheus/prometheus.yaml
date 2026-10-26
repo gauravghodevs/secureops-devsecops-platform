@@ -74,6 +74,14 @@ data:
             target_label: service
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
+      # kube-state-metrics reports on OTHER pods, so its series carry their own
+      # namespace/pod labels. honor_labels keeps them instead of overwriting them with
+      # the kube-state-metrics pod's own identity.
+      - job_name: kube-state-metrics
+        honor_labels: true
+        static_configs:
+          - targets:
+              - kube-state-metrics.monitoring.svc.cluster.local:8080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -145,30 +153,6 @@ spec:
               mountPath: /prometheus
             - name: tmp
               mountPath: /tmp
-        - name: configmap-reload
-          image: ghcr.io/jimmidyson/configmap-reload:v0.14.0
-          args:
-            - --volume-dir=/etc/prometheus/rules
-            - --webhook-url=http://127.0.0.1:9090/-/reload
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 65534
-            runAsGroup: 65534
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: ["ALL"]
-          resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-          volumeMounts:
-            - name: alert-rules
-              mountPath: /etc/prometheus/rules
-              readOnly: true
       volumes:
         - name: config
           configMap:

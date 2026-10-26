@@ -1,0 +1,66 @@
+# Self-hosted SonarQube (SAST) + Dependency-Track (SCA) for local use and demos.
+#   cp .env.example .env     # set a real password
+#   docker compose up -d
+# SonarQube:        http://localhost:9000   (first login admin / admin, you must change it)
+# Dependency-Track: http://localhost:8082   (first login admin / admin, you must change it)
+# Dependency-Track API: http://localhost:8081
+name: secureops-tools
+
+services:
+  sonarqube-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: ${SONAR_DB_PASSWORD:?set SONAR_DB_PASSWORD in .env}
+      POSTGRES_DB: sonar
+    volumes:
+      - sonarqube_db:/var/lib/postgresql/data
+
+  sonarqube:
+    image: sonarqube:community
+    restart: unless-stopped
+    depends_on:
+      - sonarqube-db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: ${SONAR_DB_PASSWORD}
+    ulimits:
+      nofile:
+        soft: 131072
+        hard: 131072
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  dtrack-apiserver:
+    image: dependencytrack/apiserver:latest # pin to a release once you have a known-good run
+    restart: unless-stopped
+    environment:
+      EXTRA_JAVA_OPTIONS: "-Xmx2g"
+    ports:
+      - "8081:8080"
+    volumes:
+      - dtrack_data:/data
+
+  dtrack-frontend:
+    image: dependencytrack/frontend:latest
+    restart: unless-stopped
+    depends_on:
+      - dtrack-apiserver
+    environment:
+      # The browser calls the API directly, so this must be reachable from your browser.
+      API_BASE_URL: ${DTRACK_API_BASE_URL:-http://localhost:8081}
+    ports:
+      - "8082:8080"
+
+volumes:
+  sonarqube_db:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  dtrack_data:

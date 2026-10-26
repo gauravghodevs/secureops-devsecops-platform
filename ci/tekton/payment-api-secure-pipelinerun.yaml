@@ -1,0 +1,18 @@
+# kubectl create -f ci/tekton/payment-api-secure-pipelinerun.yaml   (create, not apply: generateName)
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: payment-api-secure-ci-run-
+  namespace: default
+spec:
+  pipelineRef:
+    name: payment-api-secure-ci
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

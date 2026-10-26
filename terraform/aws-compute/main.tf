@@ -1,3 +1,7 @@
+provider "aws" {
+  region = var.region
+}
+
 data "aws_ami" "al2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -8,15 +12,27 @@ data "aws_ami" "al2023" {
   }
 }
 
+# Without a key pair there is no way to log in to an Amazon Linux host.
+resource "aws_key_pair" "tooling" {
+  key_name_prefix = "secureops-tooling-"
+  public_key      = file(pathexpand(var.ssh_public_key_path))
+}
+
 resource "aws_security_group" "tooling_sg" {
   name        = "secureops-tooling-sg"
-  description = "Restrict SSH, SonarQube, Dependency-Track, and Jenkins to trusted admin CIDR"
+  description = "SSH and tool UIs, restricted to one trusted admin CIDR"
   vpc_id      = var.vpc_id
 
   dynamic "ingress" {
-    for_each = [22, 8080, 8081, 9000]
+    for_each = {
+      ssh        = 22
+      jenkins    = 8080
+      dtrack_api = 8081
+      dtrack_ui  = 8082
+      sonarqube  = 9000
+    }
     content {
-      description = "Restricted administrative and tooling access"
+      description = ingress.key
       from_port   = ingress.value
       to_port     = ingress.value
       protocol    = "tcp"
@@ -32,6 +48,10 @@ resource "aws_security_group" "tooling_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "secureops-tooling-sg"
+  }
 }
 
 resource "aws_instance" "devsecops_tooling" {
@@ -39,7 +59,8 @@ resource "aws_instance" "devsecops_tooling" {
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.tooling_sg.id]
-  associate_public_ip_address = false
+  key_name                    = aws_key_pair.tooling.key_name
+  associate_public_ip_address = true
 
   metadata_options {
     http_endpoint = "enabled"
@@ -47,7 +68,7 @@ resource "aws_instance" "devsecops_tooling" {
   }
 
   root_block_device {
-    volume_size = 30
+    volume_size = var.root_volume_gb
     volume_type = "gp3"
     encrypted   = true
   }

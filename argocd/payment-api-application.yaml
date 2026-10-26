@@ -12,9 +12,16 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: default
+  # The HPA changes spec.replicas at runtime; without this Argo CD self-heal would keep resetting it.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=false
+      - RespectIgnoreDifferences=true

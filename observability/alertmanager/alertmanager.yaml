@@ -18,6 +18,9 @@ data:
 
     receivers:
       - name: default
+        webhook_configs:
+          - url: http://alert-sink.monitoring.svc.cluster.local:8080/alerts
+            send_resolved: true
 ---
 apiVersion: apps/v1
 kind: Deployment
