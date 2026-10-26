@@ -1,0 +1,112 @@
+# Lab receiver: logs every alert Alertmanager delivers, so delivery can be proven with
+#   kubectl -n monitoring logs deploy/alert-sink
+# In production replace it with Slack, Teams or PagerDuty (keep the URL in a Secret).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-sink-script
+  namespace: monitoring
+data:
+  sink.py: |
+    import json
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(length).decode("utf-8", "replace")
+            try:
+                for alert in json.loads(body).get("alerts", []):
+                    labels = alert.get("labels", {})
+                    print(f"ALERT status={alert.get('status')} name={labels.get('alertname')} labels={labels}", flush=True)
+            except ValueError:
+                print("RAW", body, flush=True)
+            self.send_response(200)
+            self.end_headers()
+
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"ok")
+
+        def log_message(self, *args):
+            pass
+
+
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-sink
+  namespace: monitoring
+  labels:
+    app: alert-sink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-sink
+  template:
+    metadata:
+      labels:
+        app: alert-sink
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alert-sink
+          image: python:3.11-slim
+          command: ["python", "/app/sink.py"]
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+          volumeMounts:
+            - name: script
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: alert-sink-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-sink
+  namespace: monitoring
+  labels:
+    app: alert-sink
+spec:
+  type: ClusterIP
+  selector:
+    app: alert-sink
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

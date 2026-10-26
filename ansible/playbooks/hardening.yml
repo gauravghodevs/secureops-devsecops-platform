@@ -1,6 +1,11 @@
 ---
-- name: Harden Linux Host
-  hosts: all
+# Targets ONLY the [tooling] group. Never "all": with the default localhost inventory a
+# playbook aimed at "all" would reconfigure the machine you are typing on.
+#
+#   ansible-playbook -i inventory/hosts.ini playbooks/hardening.yml --check --diff   # dry run
+#   ansible-playbook -i inventory/hosts.ini playbooks/hardening.yml                  # apply
+- name: Harden the tooling host
+  hosts: tooling
   become: true
   roles:
     - hardening

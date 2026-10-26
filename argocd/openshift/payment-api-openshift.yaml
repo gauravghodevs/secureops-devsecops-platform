@@ -1,0 +1,28 @@
+# For the OpenShift GitOps operator (its Argo CD instance lives in openshift-gitops).
+# Prerequisite:  oc new-project payment-dev
+#                oc label namespace payment-dev argocd.argoproj.io/managed-by=openshift-gitops
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payment-api-openshift
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/gauravghodevs/secureops-devsecops-platform.git
+    targetRevision: main
+    path: kubernetes/overlays/openshift
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: payment-dev
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - RespectIgnoreDifferences=true
