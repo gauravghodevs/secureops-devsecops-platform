@@ -6,4 +6,4 @@ resources:
 
 images:
   - name: ghcr.io/gauravghodevs/secureops-payment-api
-    newTag: 8a9965cfabef1ce7ed49787141a806179be44b1b
+    newTag: be78c0b355ecb246913062902396b01ea5098979
