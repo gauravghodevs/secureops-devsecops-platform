@@ -1,0 +1,119 @@
+{
+  "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "serialNumber": "urn:uuid:d4a25d34-26b8-43f2-8c76-e4ccbc266927",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-10-24T18:21:02+00:00",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "manufacturer": {
+            "name": "Aqua Security Software Ltd."
+          },
+          "group": "aquasecurity",
+          "name": "trivy",
+          "version": "0.75.0"
+        }
+      ]
+    },
+    "component": {
+      "bom-ref": "a2db71eb-d103-4e43-89f1-d150f914c7d1",
+      "type": "application",
+      "name": "applications/payment-api",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:SchemaVersion",
+          "value": "2"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "739ed8c3-1538-419b-baf3-3422ca03cad1",
+      "type": "application",
+      "name": "requirements.txt",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:Class",
+          "value": "lang-pkgs"
+        },
+        {
+          "name": "aquasecurity:trivy:Type",
+          "value": "pip"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:pypi/fastapi@0.142.4",
+      "type": "library",
+      "name": "fastapi",
+      "version": "0.142.4",
+      "purl": "pkg:pypi/fastapi@0.142.4",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "pip"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:pypi/prometheus-client@0.21.1",
+      "type": "library",
+      "name": "prometheus-client",
+      "version": "0.21.1",
+      "purl": "pkg:pypi/prometheus-client@0.21.1",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "pip"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:pypi/uvicorn@0.34.0",
+      "type": "library",
+      "name": "uvicorn",
+      "version": "0.34.0",
+      "purl": "pkg:pypi/uvicorn@0.34.0",
+      "properties": [
+        {
+          "name": "aquasecurity:trivy:PkgType",
+          "value": "pip"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "739ed8c3-1538-419b-baf3-3422ca03cad1",
+      "dependsOn": [
+        "pkg:pypi/fastapi@0.142.4",
+        "pkg:pypi/prometheus-client@0.21.1",
+        "pkg:pypi/uvicorn@0.34.0"
+      ]
+    },
+    {
+      "ref": "a2db71eb-d103-4e43-89f1-d150f914c7d1",
+      "dependsOn": [
+        "739ed8c3-1538-419b-baf3-3422ca03cad1"
+      ]
+    },
+    {
+      "ref": "pkg:pypi/fastapi@0.142.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:pypi/prometheus-client@0.21.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:pypi/uvicorn@0.34.0",
+      "dependsOn": []
+    }
+  ],
+  "vulnerabilities": []
+}
