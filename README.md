@@ -412,3 +412,9 @@ The repository is intentionally implemented in verifiable stages. Documentation 
 ### Gaurav Singh Ghodage
 
 DevOps / DevSecOps Engineering Portfolio Project
+
+## Verification & Evidence Logs
+
+- **Secure CI/CD & SCA Gate (`dtrack_gate.py`)**: [`docs/evidence/dtrack-gate-run.txt`](docs/evidence/dtrack-gate-run.txt)
+- **Observability Alert Routing Drill**: [`docs/evidence/alert-routing-drill.txt`](docs/evidence/alert-routing-drill.txt)
+- **Ansible Hardening Validation**: Verified via `ansible-playbook` syntax and role validation (`ansible/playbooks/hardening.yml`)

@@ -28,5 +28,5 @@ terraform destroy
 - Ingress is limited to a single CIDR and `0.0.0.0/0` is rejected by validation.
 - IMDSv2 is required and the root volume is encrypted.
 - Egress is open so the host can reach package repositories; this is a documented, accepted
-  finding (`trivy:ignore:AWS-0104`).
+  finding (`trivy:ignore:AVD-AWS-0104`).
 - State is local and git-ignored. Use an S3 backend with locking for shared work.

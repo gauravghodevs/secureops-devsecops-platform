@@ -1,0 +1,32 @@
+=== 1. Dependency-Track Gate Unit Tests (pytest) ===
+============================= test session starts ==============================
+platform linux -- Python 3.11.13, pytest-9.0.3, pluggy-1.7.0 -- /tmp/secureops-lock/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/secureops-devsecops-platform
+plugins: cov-7.0.0, anyio-4.15.1
+collecting ... collected 5 items
+
+tests/scripts/test_dtrack_gate.py::test_passes_when_clean PASSED         [ 20%]
+tests/scripts/test_dtrack_gate.py::test_fails_on_critical PASSED         [ 40%]
+tests/scripts/test_dtrack_gate.py::test_high_limit_enforced_when_set PASSED [ 60%]
+tests/scripts/test_dtrack_gate.py::test_negative_limit_disables_check PASSED [ 80%]
+tests/scripts/test_dtrack_gate.py::test_missing_or_null_metrics_are_treated_as_zero PASSED [100%]
+
+============================== 5 passed in 0.06s ===============================
+
+=== 2. Local Trivy SCA Gate Execution ===
+=== Running Local CycloneDX SBOM Generation & SCA Check ===
+Scanning SBOM for HIGH/CRITICAL vulnerabilities...
+
+Report Summary
+
+┌──────────────────┬──────┬─────────────────┐
+│      Target      │ Type │ Vulnerabilities │
+├──────────────────┼──────┼─────────────────┤
+│ requirements.txt │ pip  │        0        │
+└──────────────────┴──────┴─────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+SCA Quality Gate Passed: No unmitigated High/Critical vulnerabilities found.

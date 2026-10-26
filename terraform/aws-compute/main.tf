@@ -40,7 +40,7 @@ resource "aws_security_group" "tooling_sg" {
     }
   }
 
-  # trivy:ignore:AWS-0104
+  # trivy:ignore:AVD-AWS-0104
   egress {
     description = "Outbound package and container registry access"
     from_port   = 0

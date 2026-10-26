@@ -2,10 +2,10 @@
   "$schema": "http://cyclonedx.org/schema/bom-1.7.schema.json",
   "bomFormat": "CycloneDX",
   "specVersion": "1.7",
-  "serialNumber": "urn:uuid:d4a25d34-26b8-43f2-8c76-e4ccbc266927",
+  "serialNumber": "urn:uuid:51e8abca-d375-4719-8636-a6daeff4c9cc",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-24T18:21:02+00:00",
+    "timestamp": "2026-10-26T17:21:57+00:00",
     "tools": {
       "components": [
         {
@@ -20,7 +20,7 @@
       ]
     },
     "component": {
-      "bom-ref": "a2db71eb-d103-4e43-89f1-d150f914c7d1",
+      "bom-ref": "42083ec3-bf6a-4552-aece-bcb5fb2fe9f3",
       "type": "application",
       "name": "applications/payment-api",
       "properties": [
@@ -33,7 +33,7 @@
   },
   "components": [
     {
-      "bom-ref": "739ed8c3-1538-419b-baf3-3422ca03cad1",
+      "bom-ref": "1daeb56a-65f1-441b-819a-e6cbe870f80a",
       "type": "application",
       "name": "requirements.txt",
       "properties": [
@@ -52,6 +52,13 @@
       "type": "library",
       "name": "fastapi",
       "version": "0.142.4",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "purl": "pkg:pypi/fastapi@0.142.4",
       "properties": [
         {
@@ -65,6 +72,13 @@
       "type": "library",
       "name": "prometheus-client",
       "version": "0.21.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
       "purl": "pkg:pypi/prometheus-client@0.21.1",
       "properties": [
         {
@@ -78,6 +92,13 @@
       "type": "library",
       "name": "uvicorn",
       "version": "0.34.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
       "purl": "pkg:pypi/uvicorn@0.34.0",
       "properties": [
         {
@@ -89,7 +110,7 @@
   ],
   "dependencies": [
     {
-      "ref": "739ed8c3-1538-419b-baf3-3422ca03cad1",
+      "ref": "1daeb56a-65f1-441b-819a-e6cbe870f80a",
       "dependsOn": [
         "pkg:pypi/fastapi@0.142.4",
         "pkg:pypi/prometheus-client@0.21.1",
@@ -97,9 +118,9 @@
       ]
     },
     {
-      "ref": "a2db71eb-d103-4e43-89f1-d150f914c7d1",
+      "ref": "42083ec3-bf6a-4552-aece-bcb5fb2fe9f3",
       "dependsOn": [
-        "739ed8c3-1538-419b-baf3-3422ca03cad1"
+        "1daeb56a-65f1-441b-819a-e6cbe870f80a"
       ]
     },
     {
