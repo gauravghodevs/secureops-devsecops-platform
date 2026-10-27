@@ -1,0 +1,124 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform planned the following actions, but then encountered a problem:
+
+  # aws_key_pair.tooling will be created
+  + resource "aws_key_pair" "tooling" {
+      + arn             = (known after apply)
+      + fingerprint     = (known after apply)
+      + id              = (known after apply)
+      + key_name        = (known after apply)
+      + key_name_prefix = "secureops-tooling-"
+      + key_pair_id     = (known after apply)
+      + key_type        = (known after apply)
+      + public_key      = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAPYIwqQ1P5vi+/lUqCP/fIueg6HogvhFmsfgj9S/o6H secureops-admin"
+      + tags_all        = (known after apply)
+    }
+
+  # aws_security_group.tooling_sg will be created
+  + resource "aws_security_group" "tooling_sg" {
+      + arn                    = (known after apply)
+      + description            = "SSH and tool UIs, restricted to one trusted admin CIDR"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "Outbound package and container registry access"
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "171.61.32.223/32",
+                ]
+              + description      = "dtrack_api"
+              + from_port        = 8081
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8081
+            },
+          + {
+              + cidr_blocks      = [
+                  + "171.61.32.223/32",
+                ]
+              + description      = "dtrack_ui"
+              + from_port        = 8082
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8082
+            },
+          + {
+              + cidr_blocks      = [
+                  + "171.61.32.223/32",
+                ]
+              + description      = "jenkins"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8080
+            },
+          + {
+              + cidr_blocks      = [
+                  + "171.61.32.223/32",
+                ]
+              + description      = "sonarqube"
+              + from_port        = 9000
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 9000
+            },
+          + {
+              + cidr_blocks      = [
+                  + "171.61.32.223/32",
+                ]
+              + description      = "ssh"
+              + from_port        = 22
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 22
+            },
+        ]
+      + name                   = "secureops-tooling-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "secureops-tooling-sg"
+        }
+      + tags_all               = {
+          + "Name" = "secureops-tooling-sg"
+        }
+      + vpc_id                 = "vpc-0123456789abcdef0"
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + tooling_security_group_id = (known after apply)
