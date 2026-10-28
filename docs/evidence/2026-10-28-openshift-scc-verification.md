@@ -1,33 +1,58 @@
-# OpenShift Deployment and restricted-v2 SCC Verification
+# OpenShift Overlay and Security Context Verification
 Date: 2026-10-28
 
-## 1. Current cluster context
+## 1. Cluster context
 
-The verified Kubernetes context was `kind-devops`.
-This confirms the local Kubernetes environment, not an OpenShift cluster.
+The active Kubernetes context was `kind-devops`.
+The OpenShift CLI (`oc`) was unavailable in the current shell.
+Live OpenShift deployment and SCC enforcement were not verified in this session.
 
-## 2. Payment API runtime identity
+## 2. Kustomize overlay validation
 
 Command:
-`kubectl exec -n default payment-api-7df874b85d-j6r9t -- id`
+`kubectl kustomize kubernetes/overlays/openshift > /tmp/openshift-rendered.yaml`
 
-Observed output:
-`uid=10001 gid=0(root) groups=0(root)`
+Result: PASS. The rendered manifest contained 207 lines.
 
-## 3. Container security configuration
+Verified resource kinds:
+- Deployment
+- HorizontalPodAutoscaler
+- NetworkPolicy
+- PodDisruptionBudget
+- Route
+- Service
+- ServiceAccount
+- ServiceMonitor
 
-Observed pod/container settings:
-- allowPrivilegeEscalation: false
-- capabilities.drop: ALL
-- readOnlyRootFilesystem: true
-- runAsNonRoot: true
-- seccompProfile: RuntimeDefault
+## 3. Rendered Payment API security settings
 
-## 4. OpenShift SCC enforcement status
+Inspection command:
+`grep -n -A18 -B5 'securityContext:' /tmp/openshift-rendered.yaml`
 
-Not verified against an OpenShift cluster in this session.
-The current context is kind-devops, so these results must not be represented as proof of restricted-v2 SCC enforcement.
+The rendered Deployment includes:
+- `allowPrivilegeEscalation: false`
+- `capabilities.drop: ALL`
+- `readOnlyRootFilesystem: true`
+- `runAsNonRoot: true`
+- Container `seccompProfile: RuntimeDefault`
+- Pod `seccompProfile: RuntimeDefault`
 
-## 5. Follow-up
+The Deployment also mounts an `emptyDir` volume at `/tmp`.
 
-Validate the OpenShift overlay and repeat the runtime verification against an actual OpenShift cluster before claiming SCC enforcement.
+## 4. Local Kubernetes runtime evidence
+
+Previously observed in the `kind-devops` cluster:
+- Runtime identity: `uid=10001 gid=0(root) groups=0(root)`
+- `readOnlyRootFilesystem: true`
+- `allowPrivilegeEscalation: false`
+- `capabilities.drop: ALL`
+- `runAsNonRoot: true`
+- `seccompProfile: RuntimeDefault`
+
+These results describe the local Kubernetes runtime and do not prove OpenShift SCC enforcement.
+
+## 5. SCC verification status
+
+Status: PENDING live OpenShift verification.
+
+The `restricted-v2` SCC assignment and the reported OpenShift runtime identity `uid=1000700000` have not been independently verified in the current session. Do not claim SCC enforcement until confirmed against an actual OpenShift pod.
