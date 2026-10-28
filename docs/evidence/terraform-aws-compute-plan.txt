@@ -41,7 +41,7 @@ Terraform planned the following actions, but then encountered a problem:
       + ingress                = [
           + {
               + cidr_blocks      = [
-                  + "171.61.32.223/32",
+                  + "REDACTED_PUBLIC_IP/32",
                 ]
               + description      = "dtrack_api"
               + from_port        = 8081
@@ -54,7 +54,7 @@ Terraform planned the following actions, but then encountered a problem:
             },
           + {
               + cidr_blocks      = [
-                  + "171.61.32.223/32",
+                  + "REDACTED_PUBLIC_IP/32",
                 ]
               + description      = "dtrack_ui"
               + from_port        = 8082
@@ -67,7 +67,7 @@ Terraform planned the following actions, but then encountered a problem:
             },
           + {
               + cidr_blocks      = [
-                  + "171.61.32.223/32",
+                  + "REDACTED_PUBLIC_IP/32",
                 ]
               + description      = "jenkins"
               + from_port        = 8080
@@ -80,7 +80,7 @@ Terraform planned the following actions, but then encountered a problem:
             },
           + {
               + cidr_blocks      = [
-                  + "171.61.32.223/32",
+                  + "REDACTED_PUBLIC_IP/32",
                 ]
               + description      = "sonarqube"
               + from_port        = 9000
@@ -93,7 +93,7 @@ Terraform planned the following actions, but then encountered a problem:
             },
           + {
               + cidr_blocks      = [
-                  + "171.61.32.223/32",
+                  + "REDACTED_PUBLIC_IP/32",
                 ]
               + description      = "ssh"
               + from_port        = 22
