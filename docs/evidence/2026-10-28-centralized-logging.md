@@ -1,7 +1,8 @@
 # Centralized Logging Verification (2026-10-28)
 
 ## 1. Logging Stack Pod & Service Status
-```
+
+```text
 NAME                        READY   STATUS    RESTARTS   AGE    IP            NODE                   NOMINATED NODE   READINESS GATES
 pod/elasticsearch-0         1/1     Running   0          7h6m   10.244.0.28   devops-control-plane   <none>           <none>
 pod/fluent-bit-527cp        1/1     Running   0          7h5m   10.244.0.29   devops-control-plane   <none>           <none>
@@ -13,13 +14,15 @@ service/kibana          ClusterIP   10.96.194.201   <none>        5601/TCP   7h3
 ```
 
 ## 2. Elasticsearch Indices
-```
+
+```text
 health status index                uuid                   pri rep docs.count docs.deleted store.size pri.store.size dataset.size
 yellow open   secureops-2026.10.28 mfBL9i4gR8mhREtxB3LNTg   1   1      26288            0      9.4mb          9.4mb        9.4mb
 ```
 
 ## 3. Sample Ingested payment-api Log Document
-```json
+
+```jsonjson
 {
   "took" : 230,
   "timed_out" : false,
@@ -69,7 +72,8 @@ yellow open   secureops-2026.10.28 mfBL9i4gR8mhREtxB3LNTg   1   1      26288    
 ```
 
 ## 4. Direct payment-api Container Log Hit
-```json
+
+```jsonjson
 {
   "took" : 153,
   "timed_out" : false,
