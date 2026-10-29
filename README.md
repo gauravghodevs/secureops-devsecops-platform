@@ -418,3 +418,33 @@ DevOps / DevSecOps Engineering Portfolio Project
 - **Secure CI/CD & SCA Gate (`dtrack_gate.py`)**: [`docs/evidence/dtrack-gate-run.txt`](docs/evidence/dtrack-gate-run.txt)
 - **Observability Alert Routing Drill**: [`docs/evidence/alert-routing-drill.txt`](docs/evidence/alert-routing-drill.txt)
 - **Ansible Hardening Validation**: Verified via `ansible-playbook` syntax and role validation (`ansible/playbooks/hardening.yml`)
+
+## Platform Visual Verification & Live Demo Gallery
+
+All platform verification outputs and screenshots are stored under [`docs/evidence/`](docs/evidence/README.md).
+
+### 1. CI/CD & Secret Scanning (GitHub Actions)
+
+![GitHub Actions Documentation Validation](docs/evidence/screenshots/github-actions-green.png)
+
+![GitHub Actions Secret Scanning](docs/evidence/screenshots/github-actions-secret-scanning.png)
+
+### 2. SAST Quality Gate (SonarCloud / SonarQube)
+
+![SonarQube Quality Gate Passed](docs/evidence/screenshots/sonarqube-quality-gate.png)
+
+### 3. Software Supply Chain & SBOM Analysis (Dependency-Track)
+
+![Dependency-Track Project Overview](docs/evidence/screenshots/dependency-track-project.png)
+
+### 4. GitOps Continuous Delivery (Argo CD)
+
+![Argo CD Applications Synced and Healthy](docs/evidence/screenshots/argocd-apps-healthy.png)
+
+### 5. Metrics & Observability (Grafana & Prometheus)
+
+![Grafana SecureOps Payment API Dashboard](docs/evidence/screenshots/grafana-secureops-dashboard.png)
+
+### 6. Centralized Logging (Elasticsearch, Fluent Bit & Kibana)
+
+![Kibana Payment API Container Logs](docs/evidence/screenshots/kibana-payment-api-logs.png)
