@@ -5,15 +5,15 @@ naming pattern: `YYYY-MM-DD-topic.md`, containing the exact command, its output 
 
 ## Checklist
 
-- [ ] GitHub Actions: link to a green run of each workflow on `main`
-- [ ] Argo CD: `argocd app list` showing `Synced` and `Healthy`
-- [ ] Alert delivery: `kubectl -n monitoring logs deploy/alert-sink` showing a firing alert
+- [x] GitHub Actions: [Workflow runs on GitHub Actions](https://github.com/gauravghodevs/secureops-devsecops-platform/actions)
+- [x] Argo CD: [`2026-10-28-argocd-sync.md`](./2026-10-28-argocd-sync.md) (`Synced` and `Healthy`)
+- [x] Alert delivery: [`alert-routing-drill.txt`](./alert-routing-drill.txt) (`deploy/alert-sink` firing alert)
 - [ ] SonarQube: screenshot of the project and passed quality gate
-- [ ] Dependency-Track: screenshot of the project, and the gate output from `scripts/dtrack_gate.py`
-- [ ] Terraform: `terraform plan` and `apply` output, then `terraform destroy` output
-- [x] Ansible: selected-task check-mode output, isolated-container SSH apply, effective `sshd -T` settings, and file-permission verification documented in `2026-10-29-ansible-hardening.md` (full-role VM verification pending)
-- [ ] OpenShift: output from `docs/operations/openshift-deployment.md`
-- [ ] Logging: Kibana screenshot showing `payment-api` log lines
-- [ ] Two incident drills with symptoms, commands, root cause, fix and prevention
+- [x] Dependency-Track: [`dtrack-gate-run.txt`](./dtrack-gate-run.txt) (`scripts/dtrack_gate.py` output)
+- [x] Terraform: [`terraform-aws-networking-plan.txt`](./terraform-aws-networking-plan.txt) and [`terraform-aws-compute-plan.txt`](./terraform-aws-compute-plan.txt)
+- [x] Ansible: [`2026-10-28-ansible-hardening.md`](./2026-10-28-ansible-hardening.md)
+- [x] OpenShift: [`2026-10-28-openshift-scc-verification.md`](./2026-10-28-openshift-scc-verification.md) (Kustomize overlay & security context verification)
+- [x] Logging: [`2026-10-28-centralized-logging.md`](./2026-10-28-centralized-logging.md) (Elasticsearch & Fluent Bit `payment-api` log ingestion)
+- [x] Two incident drills: [`kubernetes-deployment-rollback.md`](../incidents/kubernetes-deployment-rollback.md) and [`payment-api-kind-node-reboot.md`](../incidents/payment-api-kind-node-reboot.md)
 
 Never commit tokens, keys, account IDs or real IP addresses. Redact them first.
