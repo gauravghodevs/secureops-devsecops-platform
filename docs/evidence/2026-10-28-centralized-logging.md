@@ -22,7 +22,7 @@ yellow open   secureops-2026.10.28 mfBL9i4gR8mhREtxB3LNTg   1   1      26288    
 
 ## 3. Sample Ingested payment-api Log Document
 
-```jsonjson
+```json
 {
   "took" : 230,
   "timed_out" : false,
@@ -73,7 +73,7 @@ yellow open   secureops-2026.10.28 mfBL9i4gR8mhREtxB3LNTg   1   1      26288    
 
 ## 4. Direct payment-api Container Log Hit
 
-```jsonjson
+```json
 {
   "took" : 153,
   "timed_out" : false,
