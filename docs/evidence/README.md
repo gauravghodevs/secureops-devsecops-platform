@@ -11,7 +11,7 @@ naming pattern: `YYYY-MM-DD-topic.md`, containing the exact command, its output 
 - [ ] SonarQube: screenshot of the project and passed quality gate
 - [ ] Dependency-Track: screenshot of the project, and the gate output from `scripts/dtrack_gate.py`
 - [ ] Terraform: `terraform plan` and `apply` output, then `terraform destroy` output
-- [ ] Ansible: `--check --diff` output, the apply output, and `sshd -T` verification
+- [x] Ansible: selected-task check-mode output, isolated-container SSH apply, effective `sshd -T` settings, and file-permission verification documented in `2026-10-29-ansible-hardening.md` (full-role VM verification pending)
 - [ ] OpenShift: output from `docs/operations/openshift-deployment.md`
 - [ ] Logging: Kibana screenshot showing `payment-api` log lines
 - [ ] Two incident drills with symptoms, commands, root cause, fix and prevention
