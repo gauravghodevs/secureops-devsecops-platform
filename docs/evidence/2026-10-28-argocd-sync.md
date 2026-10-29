@@ -1,6 +1,7 @@
 # Argo CD GitOps Sync & Health Verification (2026-10-28)
 
 ## Application Status
+
 ```text
 $ kubectl get applications -n argocd -o wide
 NAME                    SYNC STATUS   HEALTH STATUS   REVISION                                   PROJECT

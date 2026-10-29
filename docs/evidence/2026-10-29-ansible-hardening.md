@@ -21,11 +21,13 @@ terminal captures. The full-role verification remains pending.
 ### 8.1 Selected-task check-mode run
 
 Command:
+
 ```bash
 ansible-playbook -i ansible/inventory/container-test.ini ansible/playbooks/hardening-container-check.yml --diff
 ```
 
 Captured terminal output:
+
 ```text
 PLAY [Safely check selected hardening tasks in the test container]
 
@@ -53,11 +55,13 @@ as a complete raw log here.
 ### 8.2 SSH hardening apply in disposable container
 
 Command:
+
 ```bash
 ansible-playbook -i ansible/inventory/container-test.ini ansible/playbooks/ssh-hardening-container-test.yml --diff
 ```
 
 Captured terminal output:
+
 ```text
 PLAY [Apply SSH hardening in disposable container only]
 
@@ -74,11 +78,13 @@ secureops-hardening-test : ok=2 changed=1 unreachable=0 failed=0 skipped=0 rescu
 ### 8.3 Effective SSH configuration verification
 
 Command:
+
 ```bash
 docker exec secureops-hardening-test /usr/sbin/sshd -T | grep -E '^(permitrootlogin|passwordauthentication|kbdinteractiveauthentication|permitemptypasswords|x11forwarding|maxauthtries|logingracetime) '
 ```
 
 Observed output:
+
 ```text
 logingracetime 30
 maxauthtries 3
@@ -92,11 +98,13 @@ permitemptypasswords no
 ### 8.4 SSH configuration file ownership and permissions
 
 Command:
+
 ```bash
 docker exec secureops-hardening-test stat -c '%U:%G %a %n' /etc/ssh/sshd_config.d/01-hardening.conf
 ```
 
 Observed output:
+
 ```text
 root:root 600 /etc/ssh/sshd_config.d/01-hardening.conf
 ```
@@ -104,6 +112,7 @@ root:root 600 /etc/ssh/sshd_config.d/01-hardening.conf
 ### 8.5 SSH syntax validation
 
 Command:
+
 ```bash
 docker exec secureops-hardening-test /usr/sbin/sshd -t
 ```
@@ -113,11 +122,13 @@ Observed result: exited successfully with no output.
 ### 8.6 Test cleanup
 
 Command:
+
 ```bash
 docker rm -f secureops-hardening-test
 ```
 
 Observed output:
+
 ```text
 secureops-hardening-test
 ```
