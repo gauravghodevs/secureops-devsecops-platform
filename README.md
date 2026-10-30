@@ -35,10 +35,10 @@ The following capabilities are implemented and tested today:
 | Kustomize base | Implemented | `kubernetes/base` |
 | OpenShift deployment | Manifests prepared (Route, ServiceMonitor, own project); not yet deployed to a live OpenShift cluster | `kubernetes/overlays/openshift`, `argocd/openshift/` |
 | Jenkins pipeline | Configured and previously verified successful | `ci/jenkins/Jenkinsfile` |
-| Tekton | Separate clone, test, SBOM/SCA, and build/config-scan tasks are defined; end-to-end execution of all stages still needs evidence | `ci/tekton/payment-api-pipeline.yaml` |
-| SAST quality gate | SonarCloud gate runs in GitHub Actions; self-hosted SonarQube is configured for Tekton but not yet executed | `.github/workflows/payment-api-ci.yml`, `ci/tekton/payment-api-secure-pipeline.yaml`, `tools/` |
+| Tekton | Secure pipeline executed end-to-end successfully, including source clone, tests, SAST, SCA/SBOM, and downstream security/build stages | `ci/tekton/payment-api-secure-pipeline.yaml`, `docs/evidence/` |
+| SAST quality gate | SonarCloud gate runs in GitHub Actions; self-hosted SonarQube SAST gate has been manually executed successfully through Tekton | `.github/workflows/payment-api-ci.yml`, `ci/tekton/payment-api-secure-pipeline.yaml`, `tools/` |
 | CycloneDX SBOM generation | Implemented | `.github/workflows/dependency-supply-chain.yml` |
-| Dependency-Track SCA gate | Gate script and Tekton task are written and unit-tested; no Dependency-Track run recorded yet | `scripts/dtrack_gate.py`, `tools/` |
+| Dependency-Track SCA gate | SBOM upload and Dependency-Track SCA gate have been manually executed successfully through Tekton | `scripts/dtrack_gate.py`, `ci/tekton/payment-api-secure-pipeline.yaml`, `tools/` |
 | Argo CD GitOps | Implemented and verified | `argocd/` |
 | Terraform AWS infrastructure | Networking and compute modules plus CI validation are configured; AWS provisioning is not verified | `terraform/` and infrastructure workflow |
 | Ansible configuration management | Audit and hardening playbooks/roles are configured; host-level application is not verified | `ansible/` and infrastructure workflow |
@@ -356,7 +356,7 @@ Jenkins execution was previously verified successfully. The Tekton PipelineRun c
 
 - [ ] Integrate the verified Jenkins pipeline into the delivery path
 - [ ] Integrate Tekton into the broader delivery path
-- [ ] Run self-hosted SonarQube and Dependency-Track (`tools/`), execute the secure Tekton pipeline, and keep dated evidence
+- [x] Run self-hosted SonarQube and Dependency-Track (`tools/`) and execute the secure Tekton pipeline end-to-end successfully (manual verification; retain dated evidence in `docs/evidence/`)
 - [x] Verify Argo CD synchronization against a live cluster (latest reported check: both Applications `Synced` and `Healthy`; retain dated evidence in the repository)
 - [x] Deploy Prometheus/Grafana/Alertmanager on Kind and verify pod/application health
 - [ ] Verify an alert firing through Alertmanager to the in-cluster `alert-sink` receiver (`kubectl -n monitoring logs deploy/alert-sink`)
